@@ -96,7 +96,7 @@ export default {
         x(this.h6, 6)
       }
       else {
-        x()
+        this.inputArr.splice(value, 1, v)
       }
     }
   }
