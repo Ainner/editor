@@ -15,14 +15,11 @@
 
 <script>
 import MyInput from './input.vue'
-import Vue from 'vue/dist/vue.common.js'
 const marked = require('marked')
-
-
 export default {
   name: 'editor',
   components: {
-    'my-input': MyInput,
+    'my-input': MyInput
   },
   data () {
     return {
@@ -35,7 +32,7 @@ export default {
   },
   methods: {
     changeCursor (v) {
-      if (this.inputArr[v] == undefined) {
+      if (this.inputArr[v] === undefined) {
         console.log('-.-')
       } else {
         this.$refs.input[v].$el.focus()
@@ -49,18 +46,18 @@ export default {
         }, 0)
       } else {
         this.inputArr.splice(value + 1, 0, '')
-        this.$refs.input[value + 1].$el.focus()
+        this.$refs.input[key + 1].$el.focus()
       }
     },
     del (value) {
-      if (value != '0') {
+      if (value !== '0') {
         this.$refs.input[value - 1].$el.focus()
         this.inputArr.splice(value, 1)
       }
     },
     getvalue (value, key) {
       this.value = value
-      this.$refs.result[key].innerHTML = value
+      this.$refs.result[key].innerHTML = marked(value)
     }
   }
 }

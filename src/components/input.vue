@@ -1,15 +1,14 @@
 <template>
-  <input class="input" @keypress="addInput" @keydown="back" @input="input" @keydown.tab="indentation" />
+  <input class="input" @mouseout="getCoverText" @keypress="addInput" @keydown="back" @input="input" @keydown.tab="indentation" :value="this.inputValue" />
 </template>
 
 <script>
-const marked = require('marked')
-
 export default {
   props: ['value'],
   data () {
     return {
-      inputValue: ''
+      inputValue: '',
+      coverText: ''
     }
   },
   methods: {
@@ -23,14 +22,14 @@ export default {
         this.$emit('addInput', this.value)
       }
     },
-    dasd (e) {
-      console.log(e)
+    getCoverText () {
+      let a = window.getSelection().toString()
+      console.log(window.getSelection())
+      if (a !== null && a.trim() !== '') {
+        this.coverText = a
+      }
     },
-    // backspace 监听并达到删除当前的输入框 arrowup & arrowdown 通过键盘进行上下 input 切换
     back (e) {
-        // var keyCode = e.keyCode || e.which || e.charCode;
-        // var ctrlKey = e.ctrlKey || e.metaKey;
-        // console.log(e.keyCode, e.which, e.charCode, e.ctrlKey, e.metaKey, e)
       if (e.keyCode === 8) {
         if (!this.inputValue) {
           e.preventDefault()          // 通过判断 input 为空时，把默认事件去掉，执行删除
@@ -40,14 +39,25 @@ export default {
         this.$emit('cursor', (this.value - 1))
       } else if (e.keyCode === 40) {
         this.$emit('cursor', (this.value + 1))
-      } else if(e.metaKey && e.ctrlKey && e.keyCode === 83) {
-        console.log('save');
+      } else if (e.metaKey && e.ctrlKey && e.keyCode === 83) {
+        this.getCoverText()
+        let a = '**'
+        let ary = this.inputValue.split(this.coverText)
+        if (ary.length > 1 && ary.length < 3) {
+          for (let i = 0; i < ary.length; i++) {
+            ary[i] = a + ary[i] + a
+          }
+          this.inputValue = ary.join(this.coverText)
+          this.inputValue = this.inputValue.substring(0, this.inputValue.length - 2)
+          this.inputValue = this.inputValue.substring(2, this.inputValue.length)
+        }
+        this.$emit('getValue', this.inputValue, this.value)
       }
     },
     // 获取到输入的数值，进行解析传回
     input (e) {
       this.inputValue = e.target.value
-      this.$emit('getValue', marked(e.target.value), this.value)
+      this.$emit('getValue', this.inputValue, this.value)
     }
   }
 }
