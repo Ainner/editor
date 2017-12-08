@@ -1,11 +1,10 @@
 <template>
   <div class="all">
     <div class="code">
-      <div class="tag">
-        <span v-for="(item,index) in inputArr" :key="index">{{ index + 1 }}</span>
+      <div class="tag" @scroll="synchronize" ref="tag">
+        <div v-for="(item,index) in inputArr" :key="index"><span>{{ index + 1 }}</span></div>
       </div>
-      <textarea v-show="false"></textarea>
-      <my-input v-for="(item,index) in inputArr" :key="index" :value="index" @getValue="getvalue" @addInput="add" @delInput="del" @cursor="changeCursor" ref="input" />
+      <textarea @scroll="synchronize" class="text" rows="1" ref="textarea" @input="input" autofocus></textarea>
     </div>
     <div class="showcase">
       <div class="resultDiv" v-for="(item, index) in inputArr" :key="index" ref="result"></div>
@@ -16,6 +15,7 @@
 <script>
 import MyInput from './input.vue'
 const marked = require('marked')
+
 export default {
   name: 'editor',
   components: {
@@ -23,41 +23,25 @@ export default {
   },
   data () {
     return {
-      inputArr: ['1'],
-      isShow: false,
+      inputArr: [''],
       value: null,
-      hxarr: [[], [], [], [], [], []],
-      showArr: [[], [], []]
+      row: []
     }
   },
   methods: {
-    changeCursor (v) {
-      if (this.inputArr[v] === undefined) {
-        console.log('-.-')
-      } else {
-        this.$refs.input[v].$el.focus()
-      }
+    synchronize (e) {
+      this.$refs.tag.scrollTop = e.target.scrollTop
+      this.$refs.textarea.scrollTop = e.target.scrollTop
     },
-    add (key, value) {
-      if ((this.inputArr.length - 1) === parseInt(key)) {
-        this.inputArr.splice(key + 1, 0, '')
-        setTimeout(() => {
-          this.$refs.input[key + 1].$el.focus()
-        }, 0)
-      } else {
-        this.inputArr.splice(value + 1, 0, '')
-        this.$refs.input[key + 1].$el.focus()
+    input (e) {
+      this.value = e.target.value
+      this.row = this.value.split('\n')
+      this.inputArr = this.row
+      if (e.inputType !== 'insertLineBreak') {
+        for (let i = 0; i < this.inputArr.length; i++) {
+          this.$refs.result[i].innerHTML = marked(this.inputArr[i])
+        }
       }
-    },
-    del (value) {
-      if (value !== '0') {
-        this.$refs.input[value - 1].$el.focus()
-        this.inputArr.splice(value, 1)
-      }
-    },
-    getvalue (value, key) {
-      this.value = value
-      this.$refs.result[key].innerHTML = marked(value)
     }
   }
 }
@@ -84,18 +68,30 @@ export default {
 .tag {
   position: absolute;
   left: 0;
-  width: 10%;
-  height: auto;
-  display: flex;
-  align-items: center;
-  flex-direction: column;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow-y: scroll;
   color: #000;
 }
 
-.tag span {
+.tag div:first-child {
+  border-top: 1px solid #000;
+}
+
+.tag div {
+  width: 100%;
   font-size: 25px;  
-  height: 30px;
-  padding: 5px 0;
+  height: 29px;
+  border-bottom: 1px solid #000;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.tag span {
+  width: 10%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -114,7 +110,20 @@ export default {
 .resultDiv {
   width: 100%;
   height: auto;
-  margin: 0;
-  padding: 0;
+  font-size: 30px;
+}
+
+.text {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
+  width: 90%;
+  font-size: 30px;
+  height: 100%;
+  border: 1px solid #000;
+  white-space: nowrap;
+  resize: none;
+  line-height: 100%;
 }
 </style>
