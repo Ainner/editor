@@ -4,7 +4,7 @@
       <div class="tag" @scroll="synchronize" ref="tag">
         <div v-for="(item,index) in inputArr" :key="index"><span>{{ index + 1 }}</span></div>
       </div>
-      <textarea @scroll="synchronize" class="text" rows="1" ref="textarea" @input="input" autofocus></textarea>
+      <textarea @scroll="synchronize" @keydown.tab="indentation" class="text" rows="1" ref="textarea" @input="input" autofocus></textarea>
     </div>
     <div class="showcase">
       <div class="resultDiv" v-for="(item, index) in inputArr" :key="index" ref="result"></div>
@@ -32,6 +32,35 @@ export default {
     synchronize (e) {
       this.$refs.tag.scrollTop = e.target.scrollTop
       this.$refs.textarea.scrollTop = e.target.scrollTop
+    },
+    indentation (e) {
+      e.preventDefault()
+      let start = e.target.selectionStart
+      let end = e.target.selectionEnd
+      let arr = this.$refs.textarea.value.split('')
+      let newStr = ''
+      let add = (num) => {
+        for (let i = 0; i < arr.length; i++) {
+          newStr = newStr + arr[i]
+        }
+        this.$refs.textarea.value = num + newStr
+        this.$refs.textarea.selectionStart = start + 2
+        this.$refs.textarea.selectionEnd = end
+        e.target.selectionStart = e.target.selectionStart + 2
+      }
+      if (!e.target.selectionStart && !this.$refs.textarea.value) {
+        console.log(1)
+        arr.push('')
+        arr[e.target.selectionStart] = arr[e.target.selectionStart] + '  '
+        add('')
+      } else if (this.$refs.textarea.value && e.target.selectionStart) {
+        console.log(2)
+        arr[e.target.selectionStart - 1] = arr[e.target.selectionStart - 1] + '  '
+        add('')
+      } else {
+        console.log(3)
+        add('  ')
+      }
     },
     input (e) {
       this.value = e.target.value
@@ -87,6 +116,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: flex-start;
+	box-shadow: 0px 0px 2px #999 inset;  
 }
 
 .tag span {
@@ -95,6 +125,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  border-right: 1px solid #999;
 }
 
 .showcase {
@@ -102,6 +133,7 @@ export default {
   width: 720px;
   height: 100%;
   display: flex;
+  border: 1px solid #000;
   align-items: center;
   flex-direction: column;
   background-image: -webkit-linear-gradient(right, #E8CBC0, #a8CBf0);
@@ -121,7 +153,6 @@ export default {
   width: 90%;
   font-size: 30px;
   height: 100%;
-  border: 1px solid #000;
   white-space: nowrap;
   resize: none;
   line-height: 100%;
