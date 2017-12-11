@@ -4,7 +4,7 @@
       <div class="tag" @scroll="synchronize" ref="tag">
         <div v-for="(item,index) in inputArr" :key="index"><span>{{ index + 1 }}</span></div>
       </div>
-      <textarea @scroll="synchronize" @keydown.tab="indentation" class="text" rows="1" ref="textarea" @input="input" autofocus></textarea>
+      <textarea @scroll="synchronize" @keydown="fast" @keyup="fastEnd" @keydown.tab="indentation" class="text" rows="1" ref="textarea" @input="input" autofocus></textarea>
     </div>
     <div class="showcase">
       <div class="resultDiv" v-for="(item, index) in inputArr" :key="index" ref="result"></div>
@@ -25,7 +25,8 @@ export default {
     return {
       inputArr: [''],
       value: null,
-      row: []
+      row: [],
+      text: ''
     }
   },
   methods: {
@@ -44,22 +45,19 @@ export default {
           newStr = newStr + arr[i]
         }
         this.$refs.textarea.value = num + newStr
-        this.$refs.textarea.selectionStart = start + 2
+        this.$refs.textarea.selectionStart = start + 1
         this.$refs.textarea.selectionEnd = end
-        e.target.selectionStart = e.target.selectionStart + 2
+        e.target.selectionStart = e.target.selectionStart + 1
       }
       if (!e.target.selectionStart && !this.$refs.textarea.value) {
-        console.log(1)
         arr.push('')
-        arr[e.target.selectionStart] = arr[e.target.selectionStart] + '  '
+        arr[e.target.selectionStart] = arr[e.target.selectionStart] + ' '
         add('')
       } else if (this.$refs.textarea.value && e.target.selectionStart) {
-        console.log(2)
-        arr[e.target.selectionStart - 1] = arr[e.target.selectionStart - 1] + '  '
+        arr[e.target.selectionStart - 1] = arr[e.target.selectionStart - 1] + ' '
         add('')
       } else {
-        console.log(3)
-        add('  ')
+        add(' ')
       }
     },
     input (e) {
@@ -67,10 +65,40 @@ export default {
       this.row = this.value.split('\n')
       this.inputArr = this.row
       if (e.inputType !== 'insertLineBreak') {
-        for (let i = 0; i < this.inputArr.length; i++) {
-          this.$refs.result[i].innerHTML = marked(this.inputArr[i])
+        for (let i = 0; i < this.row.length; i++) {
+          this.$refs.result[i].innerHTML = marked(this.row[i])
         }
       }
+    },
+    fast (e) {
+      this.text = window.getSelection().toString()
+      let start = e.target.selectionStart
+      let end = e.target.selectionEnd
+      if (e.ctrlKey && e.keyCode === 49) {
+        let a = null
+        let x = ''
+        for (let i = 0; i < this.row.length; i++) {
+          a = a + this.row[i].length + i
+          x = x + this.row[i].length
+        }
+      } else if (e.ctrlKey && e.keyCode === 66) {
+        if (start === end) {
+          return
+        }
+        let a = this.$refs.textarea.value.split('')
+        a.splice(start, 0, '**')
+        a.splice(end + 1, 0, '**')
+        let x = ''
+        for (let i = 0; i < a.length; i++) {
+          x = x + a[i]
+        }
+        this.$refs.textarea.value = x
+        e.target.selectionStart = start + 2
+        e.target.selectionEnd = end + 2
+      }
+    },
+    fastEnd (e) {
+      e.target.selectionEnd = e.target.selectionStart + this.text.length
     }
   }
 }
@@ -126,6 +154,17 @@ export default {
   align-items: center;
   justify-content: center;
   border-right: 1px solid #999;
+}
+
+.tag input {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  font-size: 30px;
+  height: 100%;
+  position: relative;
+  z-index: 3;
+  /* color: rgba(0, 0, 0, 0) */
 }
 
 .showcase {
